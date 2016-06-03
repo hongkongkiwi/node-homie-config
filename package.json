@@ -1,0 +1,24 @@
+{
+  "name": "homie-config",
+  "version": "1.0.0",
+  "description": "Use the Homie Configuration API to setup a homie board. This is an alternative to using the web configuration interface and the Android app. You could use this to setup lots of boards if you needed or design your own web interface.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/hongkongkiwi/node-homie-config"
+  },
+  "keywords": [
+    "homie",
+    "api",
+    "arduino",
+    "esp8266"
+  ],
+  "author": "Andy Savage <andy@savage.hk> (http://andy.savage.hk)",
+  "license": "MIT",
+  "dependencies": {
+    "request": "^2.72.0"
+  }
+}
