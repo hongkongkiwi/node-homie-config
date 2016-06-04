@@ -16,7 +16,7 @@ var HeartBeatError = require('./lib/HeartBeatError'),
 */
 var HomieConfig = function(options) {
   this.options = _.extendOwn({
-    url: 'homie.local',
+    url: '192.168.1.1',
     userAgent: 'HomieConfig Node.js',
     requestTimeout: 2000,
     promise: Promise
@@ -48,6 +48,10 @@ var HomieConfig = function(options) {
   this.getWifiStatusAsync = this.options.promise.promisify(this.getWifiStatus);
   this.setTransparentWifiProxyAsync = this.options.promise.promisify(this.setTransparentWifiProxy);
   this.generateConfig = this.options.promise.promisify(this.generateConfig);
+};
+
+HomieConfig.prototype.moduleSettings = function() {
+  return this.options;
 };
 
 /*

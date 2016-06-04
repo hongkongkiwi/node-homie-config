@@ -87,6 +87,22 @@ var p = getGatewayIpAsync().then(function(ip) {
         return config;
     }).then(function(config) {
         console.log(config);
+        if (readlineSync.keyInYN('Flash this config to the board?')) {
+            console.log('-> Saving JSON Config to Homie Board...');
+            return homie.saveConfig(config);
+        } else {
+            p.cancel();
+        }
+    }).then(function(result) {
+        var config = store.get('config', config);
+        if (readlineSync.keyInYN('Connect Homie to \"' + config.wifi.ssid + '\" now?')) {
+            console.log('-> Connecting to Wifi...');
+            return homie.connectToWifi(config.wifi.ssid, config.wifi.password);
+        } else {
+            p.cancel();
+        }
+    }).then(function(result) {
+        console.log('-> Configuration Finished! Please reset the board now.');
     }).catch(function(err) {
         if (err.code === 'ETIMEDOUT') {
             console.log('Failed! Timeout Connecting to Board. Are you connected to the AP?');

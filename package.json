@@ -1,6 +1,6 @@
 {
   "name": "homie-config",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Use the Homie Configuration API to setup a homie board. This is an alternative to using the web configuration interface and the Android app. You could use this to setup lots of boards if you needed or design your own web interface.",
   "main": "index.js",
   "scripts": {
