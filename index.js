@@ -1,7 +1,9 @@
 var request = require('request'),
     bluebird = require('bluebird'),
     xtend = require('xtend'),
-    createError = require('http-errors');
+    createError = require('http-errors'),
+    detectSSid = require('./lib/detect-ssid'),
+    randomID = require('./lib/random-id');
 
 // Errors
 var HeartBeatError = require('./lib/HeartBeatError'),
@@ -43,6 +45,7 @@ var HomieConfig = function(options) {
   this.saveConfigAsync = this.options.promise.promisify(this.saveConfig);
   this.getWifiStatusAsync = this.options.promise.promisify(this.getWifiStatus);
   this.setTransparentWifiProxyAsync = this.options.promise.promisify(this.setTransparentWifiProxy);
+  this.generateConfig = this.options.promise.promisify(this.generateConfig);
 };
 
 /*
@@ -159,10 +162,7 @@ HomieConfig.prototype.getNetworks = function(callback) {
 /*
 * Helpful synchronous method to generate a config object.
 */
-HomieConfig.prototype.generateConfig = function(device_name, device_id, wifi_ssid, wifi_password, mqtt_host, mqtt_options, ota) {
-  if (!device_name) throw new InvalidArgumentError('device_name is empty');
-  if (!device_id) throw new InvalidArgumentError('device_id is empty');
-  if (!wifi_ssid) throw new InvalidArgumentError('wifi_ssid is empty');
+HomieConfig.prototype.generateConfig = function(device_name, device_id, wifi_ssid, wifi_password, mqtt_host, mqtt_options, ota, callback) {
   if (!wifi_password) throw new InvalidArgumentError('wifi_password is empty');
   if (!mqtt_host) throw new InvalidArgumentError('mqtt_host is empty');
 
@@ -196,7 +196,21 @@ HomieConfig.prototype.generateConfig = function(device_name, device_id, wifi_ssi
   };
 
   delete_null_properties(config, true);
-  return config;
+  if (!config.hasOwnProperty('name')) {
+    config.device_name = 'Homie Device';
+  }
+  if (!config.hasOwnProperty('device_id')) {
+    config.device_id = 'Homie-' + randomID(8, 'a0');
+  }
+  if (config.wifi.hasOwnProperty('ssid')) {
+    return callback(null, config);
+  } else {
+    detectSSid(function(err, ssidname) {
+      if (err) return callback(err);
+      config.wifi.ssid = ssidname;
+      callback(err, config);
+    });
+  }
 };
 
 /*

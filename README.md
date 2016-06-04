@@ -68,16 +68,7 @@ homie.getHeartBeatAsync()
 
 The library supports all [current Configuration API functions](https://github.com/marvinroger/homie-esp8266/blob/master/docs/6.-Configuration-API.md).
 
-### Static Methods
-
-These can be called without creating an object instance.
-
-* getGatewayIp(callback)
-* generateConfig(device_name, device_id, wifi_ssid, wifi_password, mqtt_host, mqtt_options, ota, callback)
-
-### Instance Methods
-
-These require the board to be accessable.
+These require the board to be accessible.
 
 * getHeartBeat(callback)
 * getDeviceInfo(callback)
@@ -86,6 +77,7 @@ These require the board to be accessable.
 * connectToWifi(ssid, password, callback)
 * getWifiStatus(callback)
 * setTransparentWifiProxy(enable, callback)
+* generateConfig(device_name, device_id, wifi_ssid, wifi_password, mqtt_host, mqtt_options, ota, callback)
 
 ## Contributing
 
