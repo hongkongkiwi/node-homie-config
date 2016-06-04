@@ -19,6 +19,8 @@
   "author": "Andy Savage <andy@savage.hk> (http://andy.savage.hk)",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.4.0",
+    "http-errors": "^1.5.0",
     "request": "^2.72.0"
   }
 }

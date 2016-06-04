@@ -1,10 +1,33 @@
 var request = require('request');
+var Promise = require('bluebird');
+var createError = require('http-errors');
+var HeartBeatError = require('./lib/HeartBeatError');
+var InvalidArgumentError = require('./lib/InvalidArgumentError');
 var path = require('path');
 
 var HomieConfig = function(homieUrl, options) {
-  this.r = request;
   this.homieUrl = homieUrl;
-  this.userAgent = (options && options.userAgent) ?  options.userAgent : 'HomieConfig Node.js';
+  this.options = options ? options : {};
+  if (this.homieUrl.substring(0,7) !== 'http://') {
+    this.homieUrl = 'http://' + this.homieUrl;
+  }
+  this.options.userAgent = (this.options.userAgent) ?  this.options.userAgent : 'HomieConfig Node.js';
+  this.options.requestTimeout = this.options.requestTimeout ? this.options.requestTimeout : 2000;
+
+  var defaults = {
+      json: true,
+      timeout: this.options.requestTimeout,
+      headers: {
+        'User-Agent': this.options.userAgent
+      },
+      baseUrl: this.homieUrl
+    };
+
+  if (this.options.proxy) {
+    defaults.proxy = this.options.proxy;
+  }
+
+  this.r = request.defaults(defaults);
 };
 
 // GET /heart
@@ -19,19 +42,17 @@ var HomieConfig = function(homieUrl, options) {
 HomieConfig.prototype.getHeartBeat = function(callback) {
   var options = {
     method: 'GET',
-    url: this.homieUrl + '/heart',
-    json: true,
-    headers: {
-      'User-Agent': this.userAgent
-    }
+    url: '/heart',
   };
 
   this.r(options, function(err, response, body) {
       if (err) return callback(err);
       if (response.statusCode === 200 && body && body.hasOwnProperty('heart') && body.heart === 'beat') {
-        callback(null, true);
+        return callback(null, true);
+      } else if (response.statusCode === 404) {
+        callback(new HeartBeatError('Detected wrong heartbeat!'));
       } else {
-        callback(new Error(response.statusCode), false); // TODO: Change to http error
+        callback(createError(response.statusCode, 'blah'), false);
       }
   });
 };
@@ -62,11 +83,7 @@ HomieConfig.prototype.getDeviceInfo = function(callback) {
 
   var options = {
     method: 'GET',
-    url: this.homieUrl + '/device-info',
-    json: true,
-    headers: {
-      'User-Agent': this.userAgent
-    }
+    url: '/device-info',
   };
 
   this.r(options, function(err, response, body) {
@@ -74,7 +91,7 @@ HomieConfig.prototype.getDeviceInfo = function(callback) {
       if (response.statusCode === 200 && body) {
         callback(null, body);
       } else {
-        callback(new Error(response.statusCode), false); // TODO: Change to http error
+        callback(createError(response.statusCode), null);
       }
   });
 };
@@ -105,11 +122,7 @@ HomieConfig.prototype.getNetworks = function(callback) {
 
   var options = {
     method: 'GET',
-    url: this.homieUrl + '/networks',
-    json: true,
-    headers: {
-      'User-Agent': this.userAgent
-    }
+    url: '/networks',
   };
 
   this.r(options, function(err, response, body) {
@@ -117,14 +130,20 @@ HomieConfig.prototype.getNetworks = function(callback) {
       if (response.statusCode === 200 && body && body.hasOwnProperty('networks')) {
         callback(null, body);
       } else if (response.statusCode === 503 && body && body.hasOwnProperty('error')) {
-        callback(new Error(body.error), false); // TODO: Change this to custom error type
+        callback(createError(503, body.error), false); // TODO: Change this to custom error type
       } else {
-        callback(new Error(response.statusCode), false); // TODO: Change to http error
+        callback(createError(response.statusCode), null);
       }
   });
 };
 
 HomieConfig.prototype.generateConfig = function(device_name, device_id, wifi_ssid, wifi_password, mqtt_host, mqtt_options, ota) {
+  if (!device_name) throw new InvalidArgumentError('device_name is empty');
+  if (!device_id) throw new InvalidArgumentError('device_id is empty');
+  if (!wifi_ssid) throw new InvalidArgumentError('wifi_ssid is empty');
+  if (!wifi_password) throw new InvalidArgumentError('wifi_password is empty');
+  if (!mqtt_host) throw new InvalidArgumentError('mqtt_host is empty');
+
   var config = {
     "name": device_name,
     "device_id": device_id,
@@ -134,26 +153,27 @@ HomieConfig.prototype.generateConfig = function(device_name, device_id, wifi_ssi
     },
     "mqtt": {
       "host": mqtt_host,
-      "port": mqtt.port ? mqtt.port : 1883,
-      "mdns": mqtt.mdns,
-      "base_topic": mqtt.base_topic ? mqtt.base_topic : 'devices/',
-      "auth": mqtt.auth ? mqtt.auth : false,
-      "username": mqtt.username,
-      "password": mqtt.password,
-      "ssl": mqtt.ssl ? mqtt.ssl : false,
-      "fingerprint": mqtt.fingerprint
+      "port": mqtt_options && mqtt_options.port ? mqtt_options.port : 1883,
+      "mdns": mqtt_options && mqtt_options.mdns ? mqtt_options.mdns : null,
+      "base_topic": mqtt_options && mqtt_options.base_topic ? mqtt_options.base_topic : 'devices/',
+      "auth": mqtt_options && mqtt_options.auth ? mqtt_options.auth : false,
+      "username": mqtt_options && mqtt_options.username ? mqtt_options.username : null,
+      "password": mqtt_options && mqtt_options.password ? mqtt_options.password : null,
+      "ssl": mqtt_options && mqtt_options.ssl ? mqtt_options.ssl : false,
+      "fingerprint": mqtt_options && mqtt_options.fingerprint ? mqtt_options.fingerprint : null
     },
     "ota": {
-      "enabled": ota.enabled ? ota.enabled : false,
-      "host": ota.host ? ota.host : mqtt.host,
-      "port": ota.port ? ota.port : 80,
-      "mdns": ota.mdns,
-      "path": ota.path ? ota.path : '/ota',
-      "ssl": ota.ssl ? ota.ssl : false,
-      "fingerprint": ota.fingerprint
+      "enabled": ota && ota.enabled ? ota.enabled : false,
+      "host": ota && ota.host ? ota.host : mqtt_host,
+      "port": ota && ota.port ? ota.port : 80,
+      "mdns": ota && ota.mdns ? ota.mdnds : null,
+      "path": ota && ota.path ? ota.path : '/ota',
+      "ssl": ota && ota.ssl ? ota.ssl : false,
+      "fingerprint": ota && ota.fingerprint ? ota.fingerprint : null
     }
   };
 
+  delete_null_properties(config, true);
   return config;
 };
 
@@ -185,11 +205,7 @@ HomieConfig.prototype.saveConfig = function(config, callback) {
 
   var options = {
     method: 'PUT',
-    url: this.homieUrl + '/config',
-    json: true,
-    headers: {
-      'User-Agent': this.userAgent
-    }
+    url: '/config',
   };
 
   this.r(options, function(err, response, body) {
@@ -197,11 +213,11 @@ HomieConfig.prototype.saveConfig = function(config, callback) {
       if (response.statusCode === 200 && body && body.hasOwnProperty('success')) {
         callback(null, true);
       } else if (response.statusCode === 400 && body && body.hasOwnProperty('success') && body.hasOwnProperty('error')) {
-          callback(new Error(body.error), false); // TODO: Change this to custom error type
+        callback(createError(400, body.error), false); // TODO: Change this to custom error type
       } else if (response.statusCode === 403 && body && body.hasOwnProperty('success') && body.hasOwnProperty('error')) {
-          callback(new Error(body.error), false); // TODO: Change this to custom error type
+        callback(createError(403, body.error), false); // TODO: Change this to custom error type
       } else {
-        callback(new Error(response.statusCode), false); // TODO: Change to http error
+        callback(createError(response.statusCode), false);
       }
   });
 };
@@ -229,12 +245,8 @@ HomieConfig.prototype.connectToWifi = function(ssid, password, callback) {
 
   var options = {
     method: 'POST',
-    url: this.homieUrl + '/wifi-connect',
+    url: '/wifi-connect',
     form: {ssid: ssid, password: password},
-    json: true,
-    headers: {
-      'User-Agent': this.userAgent
-    }
   };
 
   this.r(options, function(err, response, body) {
@@ -242,9 +254,9 @@ HomieConfig.prototype.connectToWifi = function(ssid, password, callback) {
       if (response.statusCode === 200 && body && body.hasOwnProperty('success')) {
         callback(null, true);
       } else if (response.statusCode === 400 && body && body.hasOwnProperty('success') && body.hasOwnProperty('error')) {
-          callback(new Error(body.error), false); // TODO: Change this to custom error type
+        callback(createError(400, body.error), false); // TODO: Change this to custom error type
       } else {
-        callback(new Error(response.statusCode), false); // TODO: Change to http error
+        callback(createError(response.statusCode), false);
       }
   });
 };
@@ -269,11 +281,7 @@ HomieConfig.prototype.getWifiStatus = function(callback) {
 
   var options = {
     method: 'GET',
-    url: this.homieUrl + '/wifi-status',
-    json: true,
-    headers: {
-      'User-Agent': this.userAgent
-    }
+    url: '/wifi-status',
   };
 
   this.r(options, function(err, response, body) {
@@ -281,7 +289,7 @@ HomieConfig.prototype.getWifiStatus = function(callback) {
       if (response.statusCode === 200 && body && body.hasOwnProperty('status')) {
         callback(null, body.status);
       } else {
-        callback(new Error(response.statusCode), false); // TODO: Change to http error
+        callback(createError(response.statusCode), null);
       }
   });
 };
@@ -312,22 +320,36 @@ HomieConfig.prototype.setTransparentWifiProxy = function(enabled, callback) {
 
   var options = {
     method: 'POST',
-    url: this.homieUrl + '/proxy-control',
+    url: '/proxy-control',
     form: {'enable': enabled ? true : false},
-    json: true,
-    headers: {
-      'User-Agent': this.userAgent
-    }
   };
 
   this.r(options, function(err, response, body) {
       if (err) return callback(err);
       if (response.statusCode === 200 && body && body.hasOwnProperty('message')) {
-        callback(null, body);
+        callback(null, body.message);
       } else {
-        callback(new Error(response.statusCode), false); // TODO: Change to http error
+        callback(createError(response.statusCode), null);
       }
   });
 };
+
+/**
+ * Delete all null (or undefined) properties from an object.
+ * Set 'recurse' to true if you also want to delete properties in nested objects.
+ */
+function delete_null_properties(test, recurse) {
+    for (var i in test) {
+        if (test[i] === null) {
+            delete test[i];
+        } else if (recurse && typeof test[i] === 'object') {
+            delete_null_properties(test[i], recurse);
+        }
+    }
+}
+
+// This is a trick we use to promisify the whole library to support promises
+var throwAwayInstance = new HomieConfig('dummyserver');
+Promise.promisifyAll(Object.getPrototypeOf(throwAwayInstance));
 
 module.exports = HomieConfig;
