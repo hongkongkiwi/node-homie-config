@@ -64,6 +64,14 @@ homie.getHeartBeatAsync()
   });
 ```
 
+Please find more examples in the [examples directory](https://github.com/hongkongkiwi/node-homie-config/tree/master/examples).
+
+## Configuration Wizard
+
+There is a simple interactive configuration wizard available incase you just don't want to both with using it programatically.
+
+In the examples directory run node ./configWizard.js
+
 ## Supported Methods
 
 The library supports all [current Configuration API functions](https://github.com/marvinroger/homie-esp8266/blob/master/docs/6.-Configuration-API.md).
@@ -85,10 +93,14 @@ Feel free to submit any pull requests or add functionality, I'm usually pretty r
 
 If you like the module, please consider donating some bitcoin or litecoin.
 
+__Bitcoin__
+
 ![BTC QR Code](http://i.imgur.com/9rsCfv5.png?1)
 
-__BTC:__ 1DJsQhquTjUakES5Pddh94t1XSMb7LDYyh
+1DJsQhquTjUakES5Pddh94t1XSMb7LDYyh
+
+__LiteCoin__
 
 ![LTC QR Code](http://i.imgur.com/yF1RoHp.png?1)
 
-__LTC:__ LNzdZksXcCF6qXbuiQpHPQ7LUeHuWa8dDW
+LNzdZksXcCF6qXbuiQpHPQ7LUeHuWa8dDW

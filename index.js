@@ -1,9 +1,11 @@
 var request = require('request'),
-    bluebird = require('bluebird'),
-    xtend = require('xtend'),
+    Promise = require('bluebird'),
+    _ = require('underscore'),
     createError = require('http-errors'),
     detectSSid = require('./lib/detect-ssid'),
     randomID = require('./lib/random-id');
+
+Promise.config({cancellation: true});
 
 // Errors
 var HeartBeatError = require('./lib/HeartBeatError'),
@@ -13,11 +15,11 @@ var HeartBeatError = require('./lib/HeartBeatError'),
 * Constructure method fwhich takes an optional homieUrl and some options
 */
 var HomieConfig = function(options) {
-  this.options = xtend({
+  this.options = _.extendOwn({
     url: 'homie.local',
     userAgent: 'HomieConfig Node.js',
     requestTimeout: 2000,
-    promise: bluebird
+    promise: Promise
   }, options);
 
   if (this.options.url.substring(0,7) !== 'http://') {
