@@ -80,8 +80,8 @@ You can contact me at andy@savage.hk
 
 If you like the module, please consider donating some bitcoin or litecoin.
 
-![BTC QR Code](http://imgur.com/9rsCfv5)
+![BTC QR Code](http://i.imgur.com/9rsCfv5.png?1)
 __BTC:__ 1DJsQhquTjUakES5Pddh94t1XSMb7LDYyh
 
-![LTC QR Code](http://imgur.com/yF1RoHp)
+![LTC QR Code](http://i.imgur.com/yF1RoHp.png?1)
 __LTC:__ LNzdZksXcCF6qXbuiQpHPQ7LUeHuWa8dDW
