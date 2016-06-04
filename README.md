@@ -10,16 +10,21 @@ You can grab homie-config from npm.
 
 `npm install --save homie-config`
 
-```objective-c
+Make sure to set an ip address or hostname for the board. By default, homie.local is used in case you don't pass anything.
+
+```javascript
 var HomieConfig = require('homie-config');
 
-// Replace 192.168.1.1 with your homie ip or hostname
-var homie = new HomieConfig('192.168.1.1');
+var homie = new HomieConfig();
 ```
+
+If you want to set the url you can do it this way:
+
+`var homie = new HomieConfig({url: 'homie.local'});`
 
 Traditional Callbacks
 
-```objective-c
+```javascript
 // You can choose to use traditional callbacks
 homie.getHeartBeat(function(isAlive) {
   if (!isAlive) {
@@ -31,7 +36,7 @@ homie.getHeartBeat(function(isAlive) {
 
 Promises are also supported by attaching (async) to method names
 
-```objective-c
+```javascript
 homie.getHeartBeatAsync()
   .then(function(isAlive) {
     if (!isAlive) {
@@ -45,7 +50,7 @@ homie.getHeartBeatAsync()
 
 You can chain up the methods easily using promises. I recommend you always use getHeartBeat before otehr methods.
 
-```objective-c
+```javascript
 homie.getHeartBeatAsync()
   .then(function(isAlive) {
     if (!isAlive) {
@@ -63,10 +68,20 @@ homie.getHeartBeatAsync()
 
 The library supports all [current Configuration API functions](https://github.com/marvinroger/homie-esp8266/blob/master/docs/6.-Configuration-API.md).
 
+### Static Methods
+
+These can be called without creating an object instance.
+
+* getGatewayIp(callback)
+* generateConfig(device_name, device_id, wifi_ssid, wifi_password, mqtt_host, mqtt_options, ota, callback)
+
+### Instance Methods
+
+These require the board to be accessable.
+
 * getHeartBeat(callback)
 * getDeviceInfo(callback)
 * getNetworks(callback)
-* generateConfig(device_name, device_id, wifi_ssid, wifi_password, mqtt_host, mqtt_options, ota)
 * saveConfig(config, callback)
 * connectToWifi(ssid, password, callback)
 * getWifiStatus(callback)
@@ -76,12 +91,12 @@ The library supports all [current Configuration API functions](https://github.co
 
 Feel free to submit any pull requests or add functionality, I'm usually pretty responsive.
 
-You can contact me at andy@savage.hk
-
 If you like the module, please consider donating some bitcoin or litecoin.
 
 ![BTC QR Code](http://i.imgur.com/9rsCfv5.png?1)
+
 __BTC:__ 1DJsQhquTjUakES5Pddh94t1XSMb7LDYyh
 
 ![LTC QR Code](http://i.imgur.com/yF1RoHp.png?1)
+
 __LTC:__ LNzdZksXcCF6qXbuiQpHPQ7LUeHuWa8dDW

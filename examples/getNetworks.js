@@ -1,6 +1,6 @@
 var HomieConfig = require('../index.js');
 
-var homie = new HomieConfig('192.168.1.1');
+var homie = new HomieConfig();
 
 homie.getHeartBeatAsync()
   .then(function(isAlive) {

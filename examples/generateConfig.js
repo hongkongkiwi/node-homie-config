@@ -1,6 +1,6 @@
 var HomieConfig = require('../index.js');
 
-var homie = new HomieConfig('192.168.1.1');
+var homie = new HomieConfig();
 
 var device_name = "Example Device Name",
     device_id = "somedevice-id",
